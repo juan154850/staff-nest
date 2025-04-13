@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
+
+}
+
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id      String   @id @default(uuid()) @db.Char(36)
+  name    String
+  email   String   @unique
+  phone   String? 
+
+  users   User[]
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Char(36)
+  fullName     String
+  username     String    @unique
+  email        String    @unique
+  password     String
+  phone        String?
+  role         Role      @default(user)
+  status       Status    @default(active)
+  position     String    @default("employee")
+  companyId    String?   @db.Char(36)
+  respondsToId String?   @db.Char(36)
+
+  company      Company?  @relation(fields: [companyId], references: [id])
+  supervisor   User?     @relation("SupervisorSubordinates", fields: [respondsToId], references: [id])
+  subordinates User[]    @relation("SupervisorSubordinates")
+
+  requests     Request[] @relation("EmployeeRequests")
+  approvals    Request[] @relation("ApproverRequests")
+}
+
+model Request {
+  id          String     @id @default(uuid()) @db.Char(36)
+  type        LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  description String
+  status      RequestStatus @default(Pending)
+
+  employeeId  String     @db.Char(36)
+  approverId  String     @db.Char(36)
+
+  employee    User       @relation("EmployeeRequests", fields: [employeeId], references: [id])
+  approver    User       @relation("ApproverRequests", fields: [approverId], references: [id])
+}
+
+enum Role {
+  admin
+  user
+  moderator
+}
+
+enum Status {
+  active
+  inactive
+  suspended
+}
+
+enum LeaveType {
+  Vacation
+  Sick
+  Maternity
+  Paternity
+  Bereavement
+  Unpaid
+  Other
+}
+
+enum RequestStatus {
+  Pending
+  Approved
+  Rejected
+}
