@@ -1,13 +1,15 @@
 import { Prisma } from '@prisma/client';
+import { plainToInstance, ClassConstructor } from 'class-transformer';
 
-export async function paginate<T>(
+export async function paginate<T, D = T>(
   model: Prisma.ModelName,
   prisma: any, // PrismaService
   page = 1,
   limit = 10,
   args: Prisma.Enumerable<any> = {},
+  dto?: ClassConstructor<D>,
 ): Promise<{
-  data: T[];
+  data: D[];
   totalRecords: number;
   currentPage: number;
   lastPage: number;
@@ -24,8 +26,12 @@ export async function paginate<T>(
 
   const lastPage = Math.ceil(totalRecords / limit);
 
+  const transformed = dto
+    ? plainToInstance(dto, data, { excludeExtraneousValues: true })
+    : data;
+
   return {
-    data,
+    data: transformed,
     totalRecords,
     currentPage: page,
     lastPage,
