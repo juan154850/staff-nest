@@ -1,4 +1,6 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { CompanyDto } from 'src/company/dto/company.dto';
+import { UserMinimalDto } from './user-minimal.dto';
 
 export class UserResponseDto {
   @Expose()
@@ -28,13 +30,21 @@ export class UserResponseDto {
   @Expose()
   position: string;
 
-  @Expose()
+  @Exclude()
   companyId?: string;
 
-  @Expose()
+  @Exclude()
   respondsToId?: string;
 
-  constructor(partial: Partial<UserResponseDto>) {
-    Object.assign(this, partial);
-  }
+  @Expose()
+  @Type(() => CompanyDto)
+  company?: CompanyDto;
+
+  @Expose()
+  @Type(() => UserMinimalDto)
+  supervisor?: UserMinimalDto;
+
+  @Expose()
+  @Type(() => UserMinimalDto)
+  subordinates?: UserMinimalDto[];
 }
