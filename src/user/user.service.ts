@@ -1,10 +1,4 @@
-import {
-  ConflictException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,19 +6,16 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { paginate } from 'src/common/utils/pagination';
 import { Prisma, User } from '@prisma/client';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
-// import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
   private readonly logger = new Logger(UserService.name);
 
-  async create(
-    createUserDto: CreateUserDto,
-  ): Promise<UserResponseDto | ConflictException> {
+  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     try {
       const user = await this.prisma.user.create({
-        data: createUserDto,
+        data: createUserDto as Prisma.UserCreateInput,
       });
       return plainToInstance(UserResponseDto, user, {
         excludeExtraneousValues: true,
@@ -42,26 +33,26 @@ export class UserService {
     }
   }
 
-  async findAll(): Promise<UserResponseDto[] | []> {
-    try {
-      const users = await this.prisma.user.findMany();
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.prisma.user.findMany();
 
-      if (!users) {
-        return [];
-      }
-
-      return users.map((user) =>
-        plainToInstance(UserResponseDto, user, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (error) {
-      this.logger.error('Error fetching users', error);
-      return [];
-    }
+    return users.map((user) =>
+      plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
-  async findAllPaginated(page = 1, limit = 10) {
+  async findAllPaginated(
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    data: UserResponseDto[];
+    totalRecords: number;
+    currentPage: number;
+    lastPage: number;
+    hasMorePages: boolean;
+  }> {
     try {
       return await paginate<User, UserResponseDto>(
         Prisma.ModelName.User,
@@ -73,18 +64,28 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error('Error fetching users', error);
-      return [];
+      return {
+        data: [],
+        totalRecords: 0,
+        currentPage: 0,
+        lastPage: 0,
+        hasMorePages: false,
+      };
     }
   }
 
-  async findUserById(id: string):Promise<UserResponseDto> {
+  async findUserById(id: string): Promise<UserResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        subordinates: true,
-        supervisor: true,
+        subordinates: {
+          select: { id: true, fullName: true, email: true },
+        },
+        supervisor: {
+          select: { id: true, fullName: true, email: true },
+        },
         company: true,
-      }
+      },
     });
     if (!user) {
       throw new UserNotFoundException(id);
