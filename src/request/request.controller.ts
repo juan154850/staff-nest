@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestService } from './request.service';
 
@@ -9,5 +9,20 @@ export class RequestController {
   @Post()
   async createRequest(@Body() createRequestDto: CreateRequestDto) {
     return await this.requestService.createRequest(createRequestDto);
+  }
+
+  @Get()
+  async getAllRequests(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    return await this.requestService.getAllRequests(+page, +limit);
+  }
+
+  @Get(':id')
+  async getAllRequestById(
+    @Param('id') id: string,
+  ){
+    return await this.requestService.getAllRequestById(id);
   }
 }

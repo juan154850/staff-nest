@@ -1,5 +1,13 @@
-import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma, Request } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import { paginate } from 'src/common/utils/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
@@ -39,13 +47,55 @@ export class RequestService {
       });
     } catch (error) {
       this.logger.error('Error creating request', error);
-      
-      if (error instanceof HttpException){
+
+      if (error instanceof HttpException) {
         throw error;
       }
 
       throw new BadRequestException('Invalid request data');
-
     }
+  }
+
+  async getAllRequests(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: RequestResponseDto[];
+    totalRecords: number;
+    currentPage: number;
+    lastPage: number;
+    hasMorePages: boolean;
+  }> {
+    try {
+      return await paginate<Request, RequestResponseDto>(
+        Prisma.ModelName.Request,
+        this.prisma,
+        page,
+        limit,
+        {},
+        RequestResponseDto,
+      );
+    } catch (error) {
+      this.logger.error('Error fetching requests', error);
+      return {
+        data: [],
+        totalRecords: 0,
+        currentPage: 0,
+        lastPage: 0,
+        hasMorePages: false,
+      };
+    }
+  }
+
+  async getAllRequestById(id: string) {
+    const request = await this.prisma.request.findUnique({
+      where: {
+        id,
+      },
+    });
+    if(!request){
+      throw new NotFoundException(`Request not found`);
+    }
+    return plainToInstance(RequestResponseDto, request);
   }
 }
