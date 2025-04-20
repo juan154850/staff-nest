@@ -7,6 +7,7 @@ import { paginate } from 'src/common/utils/pagination';
 import { Prisma, User } from '@prisma/client';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { RequestResponseDto } from 'src/request/dto/request-response.dto';
+import { FilterRequestsDto } from './dto/filter-requests.dto';
 
 @Injectable()
 export class UserService {
@@ -116,6 +117,56 @@ export class UserService {
         {
           where: {
             employeeId: userId,
+          },
+        },
+        RequestResponseDto,
+      );
+    } catch (error) {
+      this.logger.error('Error fetching requests', error);
+      return {
+        data: [],
+        totalRecords: 0,
+        currentPage: 0,
+        lastPage: 0,
+        hasMorePages: false,
+      };
+    }
+  }
+
+  async getPendingRequests(
+    userId: string,
+    page: number,
+    limit: number,
+    filters: FilterRequestsDto,
+  ): Promise<{
+    data: RequestResponseDto[];
+    totalRecords: number;
+    currentPage: number;
+    lastPage: number;
+    hasMorePages: boolean;
+  }> {
+    try {
+      const where: Prisma.RequestWhereInput = {
+        approverId: userId,
+        ...(filters.employeeId && { employeeId: { in: filters.employeeId } }),
+        ...(filters.type && { type: { in: filters.type } }),
+        ...(filters.status && { status: { in: filters.status } }),
+      };
+
+      return await paginate<Request, RequestResponseDto>(
+        Prisma.ModelName.Request,
+        this.prisma,
+        page,
+        limit,
+        {
+          where,
+          include: {
+            employee: {
+              select: { id: true, fullName: true, email: true },
+            },
+            approver: {
+              select: { id: true, fullName: true, email: true },
+            },
           },
         },
         RequestResponseDto,

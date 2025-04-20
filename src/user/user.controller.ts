@@ -10,6 +10,10 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserService } from './user.service';
+import {
+  FilteredPaginationDto,
+  FilterRequestsDto,
+} from './dto/filter-requests.dto';
 
 @Controller('users')
 export class UserController {
@@ -42,5 +46,20 @@ export class UserController {
     @Query('limit') limit = 10,
   ) {
     return await this.userService.getMyRequests(userId, +page, +limit);
+  }
+
+  @Get(':userId/pending-request')
+  async getPendingRequests(
+    @Param('userId') userId: string,
+    @Query() query: FilteredPaginationDto,
+  ) {
+    const { page, limit, ...filters } = query;
+
+    return await this.userService.getPendingRequests(
+      userId,
+      +page,
+      +limit,
+      filters,
+    );
   }
 }
