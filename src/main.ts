@@ -14,7 +14,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
-
+  app.enableCors();
   await app.listen(process.env.PORT ?? 3031);
 }
 bootstrap();

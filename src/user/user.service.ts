@@ -6,6 +6,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { paginate } from 'src/common/utils/pagination';
 import { Prisma, User } from '@prisma/client';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { RequestResponseDto } from 'src/request/dto/request-response.dto';
 
 @Injectable()
 export class UserService {
@@ -95,11 +96,39 @@ export class UserService {
     });
   }
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+  async getMyRequests(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: RequestResponseDto[];
+    totalRecords: number;
+    currentPage: number;
+    lastPage: number;
+    hasMorePages: boolean;
+  }> {
+    try {
+      return await paginate<Request, RequestResponseDto>(
+        Prisma.ModelName.Request,
+        this.prisma,
+        page,
+        limit,
+        {
+          where: {
+            employeeId: userId,
+          },
+        },
+        RequestResponseDto,
+      );
+    } catch (error) {
+      this.logger.error('Error fetching requests', error);
+      return {
+        data: [],
+        totalRecords: 0,
+        currentPage: 0,
+        lastPage: 0,
+        hasMorePages: false,
+      };
+    }
+  }
 }
