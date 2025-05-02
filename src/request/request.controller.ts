@@ -25,4 +25,11 @@ export class RequestController {
   ){
     return await this.requestService.getAllRequestById(id);
   }
+
+  @Post(':id/approve')
+  async approveRequest(
+    @Param('id') id: string,
+  ){
+    return await this.requestService.approveRequest(id);
+  }
 }

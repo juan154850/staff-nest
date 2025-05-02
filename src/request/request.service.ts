@@ -93,9 +93,45 @@ export class RequestService {
         id,
       },
     });
-    if(!request){
+    if (!request) {
       throw new NotFoundException(`Request not found`);
     }
     return plainToInstance(RequestResponseDto, request);
+  }
+
+  async approveRequest(
+    id: string,
+  ): Promise<{ message: string; data: Request }> {
+    const request = await this.prisma.request.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    console.log(request)
+
+    if (!request) {
+      throw new NotFoundException(`Request not found`);
+    }
+
+    if (request?.status != 'Pending') {
+      throw new Error(
+        'The request cannot be approved because it is not in Pending status',
+      );
+    }
+
+    const updatedRequest = await this.prisma.request.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'Approved',
+      },
+    });
+
+    return {
+      message: 'Request approved successfully',
+      data: updatedRequest,
+    };
   }
 }
