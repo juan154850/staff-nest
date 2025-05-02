@@ -146,12 +146,30 @@ export class UserService {
     hasMorePages: boolean;
   }> {
     try {
+      const { startDate, endDate } = filters;
+      const validEndDate =
+        startDate && endDate && new Date(endDate) <= new Date(startDate)
+          ? undefined
+          : endDate;
+
       const where: Prisma.RequestWhereInput = {
         approverId: userId,
+        ...(filters.startDate && {
+          startDate: {
+            gte: filters.startDate,
+          },
+        }),
+        ...(validEndDate && {
+          endDate: {
+            lte: validEndDate,
+          },
+        }),
         ...(filters.employee && { employeeId: { in: filters.employee } }),
         ...(filters.type && { type: { in: filters.type } }),
         ...(filters.status && { status: { in: filters.status } }),
       };
+
+      console.log('where', where);
 
       return await paginate<Request, RequestResponseDto>(
         Prisma.ModelName.Request,

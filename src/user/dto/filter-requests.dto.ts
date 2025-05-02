@@ -19,6 +19,12 @@ export class FilterRequestsDto {
   @Transform(({ value }) => value.split(','))
   @IsEnum(RequestStatus, { each: true })
   status?: RequestStatus[];
+
+  @IsOptional()
+  startDate ?: Date;
+
+  @IsOptional()
+  endDate ?: Date;
 }
 
 export class FilteredPaginationDto extends IntersectionType(
