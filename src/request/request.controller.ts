@@ -30,4 +30,9 @@ export class RequestController {
   async rejectRequest(@Param('id') id: string) {
     return await this.requestService.rejectRequest(id);
   }
+
+  @Post(':id/cancel')
+  async cancelRequest(@Param('id') id: string) {
+    return await this.requestService.cancelRequest(id);
+  }
 }

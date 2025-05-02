@@ -12,7 +12,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
 import { validateRequestRules } from './validators/request-rules.validator';
-import { RequestNotPendingException } from './exceptions/update-request-exceptions';
+import {
+  RequestInProgressException,
+  RequestNotPendingException,
+} from './exceptions/update-request-exceptions';
 
 @Injectable()
 export class RequestService {
@@ -159,6 +162,33 @@ export class RequestService {
     return {
       message: 'Request rejected successfully',
       data: updatedRequest,
+    };
+  }
+
+  // TODO: Implement this as a soft delete
+  async cancelRequest(id: string): Promise<{ message: string }> {
+    const request = await this.prisma.request.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Request not found`);
+    }
+
+    if (request.startDate <= new Date()) {
+      throw new RequestInProgressException();
+    }
+
+    await this.prisma.request.delete({
+      where: {
+        id,
+      },
+    });
+
+    return {
+      message: 'Request cancelled successfully',
     };
   }
 }
