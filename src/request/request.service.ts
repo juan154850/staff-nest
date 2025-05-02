@@ -12,6 +12,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
 import { validateRequestRules } from './validators/request-rules.validator';
+import { RequestNotPendingException } from './exceptions/update-request-exceptions';
 
 @Injectable()
 export class RequestService {
@@ -108,16 +109,12 @@ export class RequestService {
       },
     });
 
-    console.log(request)
-
     if (!request) {
       throw new NotFoundException(`Request not found`);
     }
 
     if (request?.status != 'Pending') {
-      throw new Error(
-        'The request cannot be approved because it is not in Pending status',
-      );
+      throw new RequestNotPendingException();
     }
 
     const updatedRequest = await this.prisma.request.update({
@@ -131,6 +128,36 @@ export class RequestService {
 
     return {
       message: 'Request approved successfully',
+      data: updatedRequest,
+    };
+  }
+
+  async rejectRequest(id: string): Promise<{ message: string; data: Request }> {
+    const request = await this.prisma.request.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Request not found`);
+    }
+
+    if (request?.status != 'Pending') {
+      throw new RequestNotPendingException();
+    }
+
+    const updatedRequest = await this.prisma.request.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'Rejected',
+      },
+    });
+
+    return {
+      message: 'Request rejected successfully',
       data: updatedRequest,
     };
   }

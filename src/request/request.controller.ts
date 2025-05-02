@@ -12,24 +12,22 @@ export class RequestController {
   }
 
   @Get()
-  async getAllRequests(
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
-  ) {
+  async getAllRequests(@Query('page') page = 1, @Query('limit') limit = 10) {
     return await this.requestService.getAllRequests(+page, +limit);
   }
 
   @Get(':id')
-  async getAllRequestById(
-    @Param('id') id: string,
-  ){
+  async getAllRequestById(@Param('id') id: string) {
     return await this.requestService.getAllRequestById(id);
   }
 
   @Post(':id/approve')
-  async approveRequest(
-    @Param('id') id: string,
-  ){
+  async approveRequest(@Param('id') id: string) {
     return await this.requestService.approveRequest(id);
+  }
+
+  @Post(':id/reject')
+  async rejectRequest(@Param('id') id: string) {
+    return await this.requestService.rejectRequest(id);
   }
 }
