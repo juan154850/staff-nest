@@ -148,7 +148,7 @@ export class UserService {
     try {
       const where: Prisma.RequestWhereInput = {
         approverId: userId,
-        ...(filters.employeeId && { employeeId: { in: filters.employeeId } }),
+        ...(filters.employee && { employeeId: { in: filters.employee } }),
         ...(filters.type && { type: { in: filters.type } }),
         ...(filters.status && { status: { in: filters.status } }),
       };

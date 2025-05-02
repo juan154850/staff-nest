@@ -8,7 +8,7 @@ export class FilterRequestsDto {
   @IsOptional()
   @Transform(({ value }) => value.split(','))
   @IsUUID('4', { each: true })
-  employeeId?: string[];
+  employee?: string[];
 
   @IsOptional()
   @Transform(({ value }) => value.split(','))
@@ -17,7 +17,7 @@ export class FilterRequestsDto {
 
   @IsOptional()
   @Transform(({ value }) => value.split(','))
-  @IsEnum(LeaveType, { each: true })
+  @IsEnum(RequestStatus, { each: true })
   status?: RequestStatus[];
 }
 
