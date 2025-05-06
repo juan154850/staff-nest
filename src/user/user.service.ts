@@ -97,6 +97,16 @@ export class UserService {
     });
   }
 
+  async findUserByEmail(email: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return user;
+  }
+
   async getMyRequests(
     userId: string,
     page: number,
