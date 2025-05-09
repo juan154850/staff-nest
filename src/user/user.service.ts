@@ -1,45 +1,16 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { paginate } from 'src/common/utils/pagination';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
-import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { plainToInstance } from 'class-transformer';
+import { paginate } from 'src/common/utils/pagination';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { RequestResponseDto } from 'src/request/dto/request-response.dto';
 import { FilterRequestsDto } from './dto/filter-requests.dto';
-import * as bcrypt from 'bcrypt';
+import { UserResponseDto } from './dto/user-response.dto';
+import { UserNotFoundException } from './exceptions/user-not-found.exception';
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
   private readonly logger = new Logger(UserService.name);
-
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    try {
-      
-      const {password, ...userData} = createUserDto;
-      const hasedPassword = await bcrypt.hash(password, 10);
-      const user = await this.prisma.user.create({
-        data: {
-          ...userData,
-          password: hasedPassword,
-        }
-      });
-      return plainToInstance(UserResponseDto, user, {
-        excludeExtraneousValues: true,
-      });
-    } catch (error) {
-      if (error.code === 'P2002') {
-        this.logger.warn(`User already exists: ${error.meta?.target}`);
-        throw new ConflictException(
-          'A user with this data can not be created.',
-        );
-      }
-
-      this.logger.error('Error creating company', error);
-      throw error;
-    }
-  }
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.prisma.user.findMany();

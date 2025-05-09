@@ -1,32 +1,17 @@
 import {
-  Body,
-  ConflictException,
   Controller,
   Get,
   Param,
-  Post,
-  Query,
+  Query
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { UserService } from './user.service';
 import {
-  FilteredPaginationDto,
-  FilterRequestsDto,
+  FilteredPaginationDto
 } from './dto/filter-requests.dto';
-import { Public } from 'src/decorators/public.decorator';
+import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Public()
-  @Post()
-  create(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<UserResponseDto | ConflictException> {
-    return this.userService.create(createUserDto);
-  }
 
   @Get()
   async findAll(
