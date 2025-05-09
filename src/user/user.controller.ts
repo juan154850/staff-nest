@@ -14,11 +14,13 @@ import {
   FilteredPaginationDto,
   FilterRequestsDto,
 } from './dto/filter-requests.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Post()
   create(
     @Body() createUserDto: CreateUserDto,

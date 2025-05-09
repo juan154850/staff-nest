@@ -8,7 +8,7 @@ import { Prisma, User } from '@prisma/client';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { RequestResponseDto } from 'src/request/dto/request-response.dto';
 import { FilterRequestsDto } from './dto/filter-requests.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
@@ -16,8 +16,14 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     try {
+      
+      const {password, ...userData} = createUserDto;
+      const hasedPassword = await bcrypt.hash(password, 10);
       const user = await this.prisma.user.create({
-        data: createUserDto as Prisma.UserCreateInput,
+        data: {
+          ...userData,
+          password: hasedPassword,
+        }
       });
       return plainToInstance(UserResponseDto, user, {
         excludeExtraneousValues: true,
