@@ -12,7 +12,7 @@ import {
 import { Public } from 'src/decorators/public.decorator';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserResponseDto } from 'src/user/dto/user-response.dto';
-import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -28,14 +28,14 @@ export class AuthController {
 
   @HttpCode(HttpStatus.CREATED)
   @Public()
-  @Post("register")
+  @Post('register')
   create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseDto | ConflictException> {
     return this.authService.register(createUserDto);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
